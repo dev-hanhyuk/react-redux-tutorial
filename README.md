@@ -1,153 +1,142 @@
-# A simple tutorial for beginners
-
-This tutorial targets on beginners who are interested in implementing react/redux applications from scratch.
-
-
-## Contents
-1. npm/server/webpack setup with express.js
-2. reducers/rootReducer/store/provider/component using Products example
-3. TBD
+# React/Redux Process
+For complex applications, redux plays as a centralized state management system, which enables developers to conveniently access different states no matter where you are working on. All you have to do is apply `connect` to components.
 
 
-## 1. Initialize npm
-`npm init -y`
+## state & dispatch
+States are variables that you want to manage and control through application. Dispatches are very much watchers. Since web environment needs a lot of asynchronous operations, which requires application to handle delayed information from the remote server. Dispatch makes it possible for users to access certain functions in an asynchronous setting, comming back to the function even after the function has been excuted before the user retrieved data.
 
 
-## 2. Install necessary packages for webpack react/redux application
-Copy below commands and paste on CLI
-
-###Dependencies
-`npm install --save-dev babel babel-core babel-loader babel-preset-es2015 babel-preset-react babel-preset-stage-2 css-loader node-sass sass-loader style-loader volleyball webpack`
-
-###Dev-dependencies
-`npm install --save express nodemon react react-dom react-redux react-router redux redux-logger redux-thunk`
-
-### Dependencies
-* express: sets up a running HTTP server
-* lodash: (optional) utility module
-* nodemon: watches real-time modification of application
-* react: Core module for react application(Component)
-* react-dom: Core module for react application(render)
-* react-redux: Core module for react-redux application(Provider)
-* react-router: Core module for react application(Link, browserHistory)
-* redux: Core module for redux application(createStore)
-* redux-logger: redux debugging tool
-* redux-thunk: manages redux asynchronous dispatch actions
+## Thought process
+1. Figure out what state you need, and imagine the initial state format(array, object, or others)
+2. Create individual reducers
+3. Combine individual reducers into a `root reducer`
+4. Integrate the root reducer with a store
+5. Provide the application with `store` through `<Provider>`
+6. Create a `Products` component to fetch products data
 
 
-### Development dependencies
-* babel, babel-core, babel-loader: a compiler that transforms future syntax into compatiable javascript language
-* babel-preset-es2015, babel-preset-stage-2, babel-preset-react: enable ES-6 and react syntaxes in dev-environment
-* style-loader, css-loader, node-sass, sass-loader: enable webpack to transpile styles, such as css, sass, scss
-* vollyeball: watches access to server
-* webpack: a core module bundler
+## CASE: Fetching all products information from the server
+We assume that we are going to build an application which fetches all the product information from the server
+
+### Figure out what state you need
+In this case, we would need `products` as a variable to store all the products information, and the products would be fetched with a format of ARRAY of objects.
+
+products = [ product1, product2, ... ]
+
+product1 = { id: 1, name: 'product1', price: '35.00', description: 'this is product 1', image: 'images/1.jpg' }
+product2 = { id: 2, name: 'product2', price: '29.99', description: 'this is product 2', image: 'images/2.jpg' }
 
 
-## 3. Webpack configuration
-webpack is a module bundler, meaning that it combines all the modules you create into one static bundle file(such as `bundle.js`) by injecting modules and dependencies. Therefore, developer should explicitly set the `entry`, `resolve-extensions` to specify file extensions you want to transpile, `module-loader`s to use for transpiling, and `output` to locate the static bundle.
-
-1. create `webpack.config.js`
-2. set up entry, resolve, module, and output
-3. According to `entry` and `output`, create directories(`public`, `app`), and files(`/app/main.js`)<br/>
-
-### Check out `webpack.config.js` in the repository
+### Create individual reducers
+We assumed that the products data will be an array. Therefore, initial state would be empty array.
+Each reducer takes `state` and `action` as arguments. Reducer handles action requested by users, and applies the action to the proper action type.
 
 
+```javascript
+// PRODUCTS REDUCER
+// ROOT/actions/products.js
+const INITIAL_STATE = [];
 
-## 4. Setup babel preset
-initialize babel setup by creating a `.babelrc` file
-
-1. `touch .babelrc`
-2. edit `.babelrc` file
-```JSON
-{
-    "presets": [
-        "react",
-        "es2015",
-        "stage-2"
-    ]
+const productsReducer = (state=INITIAL_STATE, action) => {
+  switch (action.type) {
+    /*
+    1. THIS WILL BE FILLED OUT AS YOU NEED TO ADD FUNCTIONALITIES OF ACTINOS such as "fetch products"
+    2. If there is no other actions, then the reducer will return INITIAL_STATE[] as default
+    */
+    default: return state;
+  }
 }
+
+export default productsReducer;
 ```
 
-## 5. Prepare a simple `index.html` template, and `main.js` to provide
-Create `public` directory, and create `index.html`
-The `index.html` will load `bundle.js` once webpack generates the bundle
+### Combine individual reducers into a `root reducer`
+Currently the rootReducer only has one `products` reducer, however, it will soon have multiple reducers.
 
-```html
-<html>
-  <head>
-    <meta charset="utf-8">
-  </head>
-  <body>
-    <div id="main"></div>
-    <script async defer src="bundle.js"></script>
-  </body>
-</html>
+```javascript
+// ROOT REDUCER
+// ROOT/reducers/index.js
+import { combineReducers } from 'redux';
+import productsReducer from './products';// import an individual products reducer
+
+const rootReducer = combineReducers({
+  products: productsReducer
+});
+
+export default rootReducer;
 ```
 
-Also, prepare a simple `main.js` in `app` directory
-```JSX
+### Integrate the root reducer with a store
+`redux` has `createStore` and `applyMiddleware` methods.
+<!-- APPLY MIDDLEWARE!!! -->
+
+
+```javascript
+// STORE
+// ROOT/store.js
+import { createStore, applyMiddleware } from 'redux'
+import rootReducer from './reducers'
+import createLogger from 'redux-logger'
+import thunkMiddleware from 'redux-thunk' //we will soon need asynchronous dispatch, so set this up in advance
+
+const store = createStore(rootReducer, applyMiddleware(createLogger(), thunkMiddleware));
+export default store;
+```
+
+
+### Provide the application with `store` through `<Provider>`
+`react-redux` module provides a method called `Provider` which allows the application access centralized store props anywhere in the application. We need to wrap the entire application with `<Provider>` tag with `store` to utilize this functionality.
+
+
+```javascript
+// ROOT/main.js
 
 import React from 'react';
 import { render } from 'react-dom';
+import { Provider } from 'react-redux'
+import store from './store'
+
+// currently application shows `Products` component by default
+import Products from '_components/Products'
 
 render (
-  <h1>Hello World</h1>,
+  <Provider store={store}>
+    <Products />
+  </Provider>,
   document.getElementById('main')
 );
-
 ```
 
-## 6. Express server setup
-Implement a simple express server
+
+### Create a `Products` component to fetch products data
+`INITIAL_STATE` is supposed to be [](empty array), however, until we set up an actual API, we will have some preset items as default
 
 ```javascript
-
-'use strict'
-
-const express = require('express');
-const app = express();
-const { resolve } = require('path');
-const PORT = process.env.PORT || 3000;
-
-app.use(require('volleyball')); //debuggin purpose, not necessary for a production setting
-app.use(express.static(resolve(__dirname, '..', 'public'))); //setup static directories
-app.use(express.static(resolve(__dirname, '..', 'db')));
-
-app.get('/*', (req, res) => {
-  // if users access any route, `index.html` will be sent to users
-  // also, you need to create a simple html template to provide
-  res.sendFile(resolve(__dirname, '..', 'public', 'index.html'));
-})
-
-//running the server
-app.listen(PORT, () => {
-  console.log('App listening on port 3000!')
-})
+// ROOT/reducers/products.js
+const INITIAL_STATE = [
+  { id: 1, name: 'product1', price: '35.00', description: 'this is product 1', image: 'images/1.jpg' },
+  { id: 2, name: 'product2', price: '29.99', description: 'this is product 2', image: 'images/2.jpg' },
+  { id: 3, name: 'product3', price: '25.99', description: 'this is product 3', image: 'images/3.jpg' }
+];
 ```
 
-## 7. Runnig a server and access to localhost
-Add this below line in `package.json` to create starting commands for the server
+In ES6, instead of `this.props.products`, we can use `({ products })`. By using `connect` method, now we can access the props in the 'centralized' `store`. This is the moment that redux becomes really powerful for complex applications. Also, in React, you need to set `key` to iterate array items.
 
-```JSON
-"scripts": {
-  "start": "nodemon server/start.js",
-  "build-watch": "webpack -w"
-}
+```jsx
+// ROOT/components/Products.js
+import React from 'react'
+import { connect } from 'react-redux'
+
+// Stateless component
+const Products = ({ products }) => (
+  <section>
+    { products.map(product => (
+      <li key={product.id}>{product.name}[{product.price}]: {product.description}</li>
+    ))}
+  </section>
+);
+
+const mapStateToProps = ({ products }) => ({ products });
+export default connect(mapStateToProps)(Products);
 ```
-
-Now on CLI, try this command with "TWO" different tabs
-
-`npm run build-watch`
-`npm start`
-
-`npm start` will automatically run `nodemon server/start.js`, and `npm run build-watch` will watch over your modification and update them to the bundle file while the server is running.
-
-
-## 8. Let's get started building applications
-On the web browser, access `localhost:3000`, and you will see "Hello World" on the screen. Yay!
-
-
-
-
 
