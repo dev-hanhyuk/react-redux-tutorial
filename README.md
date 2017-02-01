@@ -16,11 +16,11 @@ This tutorial targets on beginners who are interested in implementing react/redu
 ## 2. Install necessary packages for webpack react/redux application
 Copy below commands and paste on CLI
 
-###Dependencies
-`npm install --save-dev babel babel-core babel-loader babel-preset-es2015 babel-preset-react babel-preset-stage-2 css-loader node-sass nodemon sass-loader style-loader volleyball webpack`
-
 ###Dev-dependencies
-`npm install --save express react react-dom react-redux react-router redux redux-logger redux-thunk`
+`npm install --save-dev babel babel-core babel-loader babel-preset-es2015 babel-preset-react babel-preset-stage-2 css-loader node-sass sass-loader style-loader volleyball webpack`
+
+###Dependencies
+`npm install --save express nodemon react react-dom react-redux react-router redux redux-logger redux-thunk`
 
 ### Dependencies
 * express: sets up a running HTTP server
